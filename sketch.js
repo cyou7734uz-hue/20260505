@@ -23,6 +23,15 @@ function draw() {
   let x = (width - videoWidth) / 2;
   let y = (height - videoHeight) / 2;
   
+  // 步驟 6：在影像上方顯示文字
+  fill('#71349c');
+  stroke('#ffffff');    // 設定外框顏色為白色
+  strokeWeight(6);      // 增加外框粗細以配合大字
+  textSize(64);         // 將字體大小增加至 64
+  textAlign(CENTER, CENTER);
+  text('教科414730530', width / 2, y / 2);
+  noStroke();           // 關閉外框，避免影響後續繪製的影像
+
   // 步驟 5：將攝影機影像水平反轉（鏡像）並繪製在畫布中間
   push();
   translate(width, 0); // 將原點移至畫布右緣
