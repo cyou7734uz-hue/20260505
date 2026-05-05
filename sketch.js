@@ -72,6 +72,7 @@ function draw() {
     
     image(capture, videoX, videoY, videoW, videoH);
 
+    // 如果有偵測到臉，繪製特效
     if (faces.length > 0 && triangles) {
       let face = faces[0];
 
@@ -89,6 +90,7 @@ function draw() {
     }
     pop();
 
+    // 沒偵測到臉時顯示提示文字
     if (faces.length === 0) {
       drawWaitingText();
     }
@@ -97,6 +99,7 @@ function draw() {
   drawMobileHint();
   drawModeButtons();
 }
+
 function mapPoint(point) {
   let sx = videoW / capture.width;
   let sy = videoH / capture.height;
@@ -125,14 +128,20 @@ function drawOriginalMask(face) {
     let cy = (pA.y + pB.y + pC.y) / 3;
 
     let index = (floor(cx) + floor(cy) * capture.width) * 4;
-
     let rr = capture.pixels[index];
     let gg = capture.pixels[index + 1];
     let bb = capture.pixels[index + 2];
 
-    stroke(255, 255, 255, 120);
-    strokeWeight(0.6);
-    fill(rr, gg, bb, 230);
+    // 讓三角線條閃爍速度慢一點 (每 10 幀變換一次)
+    // 使用 noise 產生偽隨機跳轉，floor(frameCount / 10) 負責控制變色頻率
+    let timeStep = floor(frameCount / 10); 
+    let flickerR = noise(i, timeStep) * 255;
+    let flickerG = noise(i + 100, timeStep) * 255;
+    let flickerB = noise(i + 200, timeStep) * 255;
+    stroke(flickerR, flickerG, flickerB);
+
+    strokeWeight(2);           // 增加線條粗細
+    fill(rr, gg, bb, 120);     // 填充顏色並保持適度透明
 
     triangle(
       pointA.x, pointA.y,
@@ -159,8 +168,8 @@ function drawNeonMask(face) {
     let cx = (pointA.x + pointB.x + pointC.x) / 3;
     let cy = (pointA.y + pointB.y + pointC.y) / 3;
 
-    // 因為座標系翻轉了，滑鼠 X 座標也要對應處理
-    let d = dist(width - mouseX, mouseY, cx, cy);
+    // 修正：因為座標系翻轉了，滑鼠 X 座標也要對應鏡像處理
+    let d = dist(width - mouseX, mouseY, cx, cy); 
     let glow = map(d, 0, 250, 255, 50);
     glow = constrain(glow, 50, 255);
 
