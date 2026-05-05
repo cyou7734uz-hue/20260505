@@ -19,12 +19,14 @@ function preload() {
       maxFaces: 1,
       flipped: false // 關閉 ml5 自動翻轉，改由 p5 統一控制鏡像
     });
+    console.log("ml5.faceMesh initialized successfully.");
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
+  // 確保攝影機啟動後再隱藏，避免某些瀏覽器問題
   capture = createCapture(VIDEO);
 
   capture.hide();
@@ -32,10 +34,12 @@ function setup() {
   if (faceMesh) {
     faceMesh.detectStart(capture, gotFaces);
     triangles = faceMesh.getTriangles();
+    console.log("Face detection started.");
   }
 
   textFont("Arial");
 }
+
 
 function gotFaces(results) {
   faces = results;
@@ -98,6 +102,7 @@ function draw() {
 
   drawMobileHint();
   drawModeButtons();
+  drawDebugPanel();
 }
 
 function mapPoint(point) {
@@ -173,13 +178,13 @@ function drawNeonMask(face) {
     let glow = map(d, 0, 250, 255, 50);
     glow = constrain(glow, 50, 255);
 
-    let rr = map(sin(frameCount * 0.03 + i), -1, 1, 120, 255);
-    let gg = map(cos(frameCount * 0.04 + i), -1, 1, 120, 255);
-    let bb = 255;
-
+    // 修正：將 bb 改為 blueColor，避免與 let [a, b, c] = tri; 中的 b 衝突
+    let redColor = map(sin(frameCount * 0.03 + i), -1, 1, 120, 255);
+    let greenColor = map(cos(frameCount * 0.04 + i), -1, 1, 120, 255);
+    let blueColor = 255;
     stroke(255, 255, 255, glow);
     strokeWeight(0.9);
-    fill(rr, gg, bb, 95);
+    fill(redColor, greenColor, blueColor, 95);
 
     triangle(
       pointA.x, pointA.y,
@@ -376,6 +381,25 @@ function drawWaitingText() {
   }
 
   text("請面向鏡頭，生成你的數位臉譜", width / 2, videoY + videoH / 2);
+}
+
+// 偵錯面板：顯示在右上角
+function drawDebugPanel() {
+  push();
+  resetMatrix(); // 確保不被鏡像影響
+  let panelW = 140;
+  let panelH = 50;
+  let margin = 10;
+  fill(0, 100); // 半透明黑色背景
+  noStroke();
+  rect(width - panelW - margin, margin, panelW, panelH, 8);
+  
+  fill(255);
+  textSize(14);
+  textAlign(LEFT, TOP);
+  text(`人臉偵測: ${faces.length}`, width - panelW - margin + 10, margin + 8);
+  text(`格率 (FPS): ${floor(frameRate())}`, width - panelW - margin + 10, margin + 28);
+  pop();
 }
 
 // 小提示
