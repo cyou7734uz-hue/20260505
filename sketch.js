@@ -26,8 +26,11 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  // 確保攝影機啟動後再隱藏，避免某些瀏覽器問題
-  capture = createCapture(VIDEO);
+  // 指定使用手機前鏡頭 (facingMode: user)
+  capture = createCapture({
+    video: { facingMode: "user" },
+    audio: false
+  });
 
   capture.hide();
 
@@ -66,7 +69,8 @@ function draw() {
   drawTitle();
   drawVideoFrame();
 
-  if (capture.width > 0) {
+  // 檢查攝影機是否已就緒
+  if (capture.width > 0 && capture.height > 0) {
     capture.loadPixels();
 
     // 顯示攝影機畫面與特效 (統一在鏡像座標系下繪製)
@@ -93,11 +97,11 @@ function draw() {
       drawEyeEffect(face);
     }
     pop();
+  }
 
-    // 沒偵測到臉時顯示提示文字
-    if (faces.length === 0) {
-      drawWaitingText();
-    }
+  // 沒偵測到臉時顯示提示文字 (放在 push/pop 外確保文字不被翻轉)
+  if (faces.length === 0) {
+    drawWaitingText();
   }
 
   drawMobileHint();
@@ -144,9 +148,10 @@ function drawOriginalMask(face) {
     let flickerG = noise(i + 100, timeStep) * 255;
     let flickerB = noise(i + 200, timeStep) * 255;
     stroke(flickerR, flickerG, flickerB);
-
-    strokeWeight(2);           // 增加線條粗細
-    fill(rr, gg, bb, 120);     // 填充顏色並保持適度透明
+    
+    // 強化：將透明度從 120 提升到 255 (完全覆蓋)，線條加粗
+    strokeWeight(3);
+    fill(rr, gg, bb, 255); 
 
     triangle(
       pointA.x, pointA.y,
