@@ -17,7 +17,7 @@ function preload() {
   if (typeof ml5 !== 'undefined') {
     faceMesh = ml5.faceMesh({
       maxFaces: 1,
-      flipped: true
+      flipped: false // 關閉 ml5 自動翻轉，改由 p5 統一控制鏡像
     });
   }
 }
@@ -62,38 +62,41 @@ function draw() {
   drawTitle();
   drawVideoFrame();
 
-  capture.loadPixels();
+  if (capture.width > 0) {
+    capture.loadPixels();
 
-  // 顯示攝影機畫面 (水平反轉以達成鏡像效果)
-  push();
-  translate(width, 0);
-  scale(-1, 1);
-  image(capture, videoX, videoY, videoW, videoH);
-  pop();
+    // 顯示攝影機畫面與特效 (統一在鏡像座標系下繪製)
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    
+    image(capture, videoX, videoY, videoW, videoH);
 
-  // 顯示臉譜效果
-  if (faces.length > 0 && triangles) {
-    let face = faces[0];
+    if (faces.length > 0 && triangles) {
+      let face = faces[0];
 
-    if (mode === 1) {
-      drawOriginalMask(face);
-    } else if (mode === 2) {
-      drawNeonMask(face);
-    } else if (mode === 3) {
-      drawEnergyMask(face);
-    } else if (mode === 4) {
-      drawBrokenMask(face);
+      if (mode === 1) {
+        drawOriginalMask(face);
+      } else if (mode === 2) {
+        drawNeonMask(face);
+      } else if (mode === 3) {
+        drawEnergyMask(face);
+      } else if (mode === 4) {
+        drawBrokenMask(face);
+      }
+
+      drawEyeEffect(face);
     }
+    pop();
 
-    drawEyeEffect(face);
-  } else {
-    drawWaitingText();
+    if (faces.length === 0) {
+      drawWaitingText();
+    }
   }
 
   drawMobileHint();
   drawModeButtons();
 }
-
 function mapPoint(point) {
   let sx = videoW / capture.width;
   let sy = videoH / capture.height;
@@ -156,7 +159,8 @@ function drawNeonMask(face) {
     let cx = (pointA.x + pointB.x + pointC.x) / 3;
     let cy = (pointA.y + pointB.y + pointC.y) / 3;
 
-    let d = dist(mouseX, mouseY, cx, cy);
+    // 因為座標系翻轉了，滑鼠 X 座標也要對應處理
+    let d = dist(width - mouseX, mouseY, cx, cy);
     let glow = map(d, 0, 250, 255, 50);
     glow = constrain(glow, 50, 255);
 
