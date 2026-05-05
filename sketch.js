@@ -23,8 +23,12 @@ function draw() {
   let x = (width - videoWidth) / 2;
   let y = (height - videoHeight) / 2;
   
-  // 步驟 5：將攝影機影像繪製在畫布中間
+  // 步驟 5：將攝影機影像水平反轉（鏡像）並繪製在畫布中間
+  push();
+  translate(width, 0); // 將原點移至畫布右緣
+  scale(-1, 1);       // 水平反轉座標軸
   image(capture, x, y, videoWidth, videoHeight);
+  pop();
 }
 
 // 當視窗大小改變時，自動調整畫布大小以維持全螢幕
